@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Driver Panel</title>
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+
+<h1>Driver Panel</h1>
+
+<button onclick="acceptOrder()">Accept</button>
+<button onclick="startRide()">Start</button>
+<button onclick="endRide()">End</button>
+
+<script>
+const socket = io();
+
+let currentOrder = null;
+
+// socket ulanganda driver location yuboradi
+socket.on("connect", () => {
+  console.log("Driver connected");
+
+  socket.emit("driverLocation", {
+    lat: 41.31,
+    lng: 69.27
+  });
+
+  alert("Driver online bo‘ldi");
+});
+
+// yangi order kelganda
+socket.on("orderCreated", (order) => {
+  currentOrder = order;
+
+  console.log(order);
+
+  alert("Yangi order keldi!");
+});
+
+// accept
+function acceptOrder(){
+  if(!currentOrder){
+    alert("Order yo‘q");
+    return;
+  }
+
+  socket.emit("acceptOrder", currentOrder.id);
+  alert("Order qabul qilindi");
+}
+
+// start
+function startRide(){
+  if(!currentOrder){
+    alert("Order yo‘q");
+    return;
+  }
+
+  socket.emit("startRide", currentOrder.id);
+  alert("Safar boshlandi");
+}
+
+// end
+function endRide(){
+  if(!currentOrder){
+    alert("Order yo‘q");
+    return;
+  }
+
+  socket.emit("endRide", currentOrder.id);
+  alert("Safar tugadi");
+}
+</script>
+
+</body>
+</html>

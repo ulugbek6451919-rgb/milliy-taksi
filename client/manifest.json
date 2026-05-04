@@ -1,0 +1,6 @@
+{
+  "name": "Taxi App",
+  "short_name": "Taxi",
+  "start_url": "/",
+  "display": "standalone"
+}
