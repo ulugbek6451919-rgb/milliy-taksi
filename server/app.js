@@ -1,85 +1,51 @@
 const express = require("express");
-const http = require("http");
-const { Server } = require("socket.io");
-const cors = require("cors");
+const mongoose = require("mongoose");
 const path = require("path");
 
 const app = express();
-app.use(cors());
+const PORT = 3000;
+
+// Middleware
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, "../public")));
 
-app.use(express.static(path.join(__dirname, "../client")));
-app.use("/driver", express.static(path.join(__dirname, "../driver")));
-
-const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: "*" } });
-
-let drivers = {};
-let orders = {};
-let assigned = {};
-
-function calcDistance(a,b){
-  const dx = a.lat - b.lat;
-  const dy = a.lng - b.lng;
-  return Math.sqrt(dx*dx + dy*dy) * 111;
-}
-
-function calcPrice(a,b){
-  const km = calcDistance(a,b);
-  return Math.round(km * 2000);
-}
-
-io.on("connection", (socket)=>{
-
-  socket.on("driverLocation", (loc)=>{
-    drivers[socket.id] = loc;
-  });
-
-  socket.on("newOrder", (order)=>{
-    const id = Date.now().toString();
-
-    const newOrder = {
-      id,
-      ...order,
-      price: calcPrice(order.from, order.to),
-      status: "pending"
-    };
-
-    orders[id] = newOrder;
-
-    let nearest = null;
-    let min = Infinity;
-
-    for(let d in drivers){
-      let dist = calcDistance(order.from, drivers[d]);
-      if(dist < min){
-        min = dist;
-        nearest = d;
-      }
-    }
-
-    if(nearest){
-      assigned[id] = nearest;
-      io.to(nearest).emit("orderCreated", newOrder);
-    }
-  });
-
-  socket.on("acceptOrder", (orderId)=>{
-    orders[orderId].status = "accepted";
-    io.emit("orderAccepted", orders[orderId]);
-  });
-
-  socket.on("startRide", (orderId)=>{
-    orders[orderId].status = "started";
-    io.emit("rideStarted", orders[orderId]);
-  });
-
-  socket.on("endRide", (orderId)=>{
-    orders[orderId].status = "finished";
-    io.emit("rideFinished", orders[orderId]);
-  });
+// MongoDB ulanish
+mongoose.connect(
+  "mongodb://ulugbek6451919_db_user:taxi12345@ac-jtisv72-shard-00-00.uxvy0hx.mongodb.net:27017,ac-jtisv72-shard-00-01.uxvy0hx.mongodb.net:27017,ac-jtisv72-shard-00-02.uxvy0hx.mongodb.net:27017/?ssl=true&replicaSet=atlas-gg5liu-shard-0&authSource=admin&appName=Cluster0"
+)
+.then(() => {
+  console.log("MongoDB connected");
+})
+.catch((err) => {
+  console.log("Mongo error:", err);
 });
 
-server.listen(3000, ()=>{
-  console.log("http://localhost:3000");
+// Home page
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "../public/index.html"));
+});
+
+// Auth page
+app.get("/auth", (req, res) => {
+  res.sendFile(path.join(__dirname, "../client/auth.html"));
+});
+
+// Register route
+app.post("/register", async (req, res) => {
+  try {
+    const { name, phone, password } = req.body;
+
+    console.log("New user:");
+    console.log(name, phone, password);
+
+    res.send("Ro‘yxatdan o‘tish muvaffaqiyatli!");
+  } catch (err) {
+    res.send("Xatolik yuz berdi");
+  }
+});
+
+// Server start
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
