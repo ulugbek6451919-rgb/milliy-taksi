@@ -1,5 +1,4 @@
 const express = require("express");
-const mongoose = require("mongoose");
 const path = require("path");
 const http = require("http");
 const { Server } = require("socket.io");
@@ -17,69 +16,46 @@ app.use(express.urlencoded({ extended: true }));
 // Static files
 app.use(express.static(path.join(__dirname, "../client")));
 
-// MongoDB
-mongoose.connect("SENING_MONGODB_URLING")
-.then(() => {
-    console.log("MongoDB connected");
-})
-.catch((err) => {
-    console.log("Mongo error:", err);
-});
 
-// HOME
+// HOME PAGE
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "../client/index.html"));
 });
 
-// AUTH
+// AUTH PAGE
 app.get("/auth", (req, res) => {
     res.sendFile(path.join(__dirname, "../client/auth.html"));
 });
 
-// DRIVER
+// DRIVER PAGE
 app.get("/driver", (req, res) => {
     res.sendFile(path.join(__dirname, "../client/driver.html"));
 });
 
+
 // REGISTER
-app.post("/register", async (req, res) => {
-    try {
-        const { name, phone, password } = req.body;
+app.post("/register", (req, res) => {
+    const { name, phone, password } = req.body;
 
-        console.log("REGISTER:", name, phone, password);
+    console.log("REGISTER:", name, phone, password);
 
-        res.json({
-            message: "Ro‘yxatdan o‘tish muvaffaqiyatli!"
-        });
-
-    } catch (err) {
-        console.log(err);
-
-        res.json({
-            message: "Xatolik yuz berdi"
-        });
-    }
+    res.json({
+        message: "Ro‘yxatdan o‘tish muvaffaqiyatli!"
+    });
 });
+
 
 // LOGIN
-app.post("/login", async (req, res) => {
-    try {
-        const { phone, password } = req.body;
+app.post("/login", (req, res) => {
+    const { phone, password } = req.body;
 
-        console.log("LOGIN:", phone, password);
+    console.log("LOGIN:", phone, password);
 
-        res.json({
-            message: "Login muvaffaqiyatli!"
-        });
-
-    } catch (err) {
-        console.log(err);
-
-        res.json({
-            message: "Xatolik yuz berdi"
-        });
-    }
+    res.json({
+        message: "Login muvaffaqiyatli!"
+    });
 });
+
 
 // SOCKET
 io.on("connection", (socket) => {
@@ -87,7 +63,6 @@ io.on("connection", (socket) => {
 
     socket.on("newOrder", (order) => {
         console.log("New taxi order:", order);
-
         io.emit("newOrder", order);
     });
 
@@ -110,7 +85,8 @@ io.on("connection", (socket) => {
     });
 });
 
-// SERVER START
+
+// START SERVER
 server.listen(PORT, () => {
     console.log(Server running on port ${PORT});
 });
