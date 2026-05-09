@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Driver Panel</title>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+</head>
+<body>
+
+<h1>Driver Panel</h1>
+
+<div id="orders"></div>
+
+<script>
+const socket = io();
+
+socket.on("newOrder", (order)=>{
+    const div = document.createElement("div");
+
+    div.innerHTML = 
+        <h3>Yangi buyurtma</h3>
+        <button onclick="acceptOrder()">Accept</button>
+        <hr>
+    ;
+
+    document.getElementById("orders").appendChild(div);
+});
+
+function acceptOrder(){
+    socket.emit("acceptOrder", {
+        price: 25000
+    });
+
+    alert("Order qabul qilindi");
+}
+</script>
+
+</body>
+</html>
