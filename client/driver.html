@@ -2,35 +2,50 @@
 <html>
 <head>
     <title>Driver Panel</title>
-    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
 
 <h1>Driver Panel</h1>
+
+<h2>Yangi buyurtmalar:</h2>
 
 <div id="orders"></div>
 
 <script>
 const socket = io();
 
-socket.on("newOrder", (order)=>{
+const ordersDiv = document.getElementById("orders");
+
+// yangi taxi chaqirilsa
+socket.on("newOrder", (order) => {
+    console.log("Yangi order:", order);
+
     const div = document.createElement("div");
+    div.style.border = "1px solid black";
+    div.style.padding = "10px";
+    div.style.margin = "10px";
 
     div.innerHTML = 
-        <h3>Yangi buyurtma</h3>
-        <button onclick="acceptOrder()">Accept</button>
-        <hr>
+        <p><b>Pickup:</b> ${order.pickup}</p>
+        <p><b>Destination:</b> ${order.destination}</p>
+        <button onclick="acceptOrder('${order.pickup}','${order.destination}')">
+            Qabul qilish
+        </button>
     ;
 
-    document.getElementById("orders").appendChild(div);
+    ordersDiv.appendChild(div);
 });
 
-function acceptOrder(){
+// order qabul qilish
+function acceptOrder(pickup, destination){
     socket.emit("acceptOrder", {
-        price: 25000
+        pickup,
+        destination,
+        price: "50000"
     });
 
-    alert("Order qabul qilindi");
+    alert("Buyurtma qabul qilindi");
 }
 </script>
 
