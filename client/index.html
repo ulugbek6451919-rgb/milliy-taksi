@@ -1,24 +1,28 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Taxi App</title>
+    <title>Taxi App</title>
 
-  <link rel="stylesheet" href="/css/style.css">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
-  <script src="/socket.io/socket.io.js"></script>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- SOCKET FIX -->
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
+    <!-- LEAFLET -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
+
 <body>
 
 <div id="panel">
-  <h2>🚕 Taxi App</h2>
+    <h2>🚕 Taxi App</h2>
 
-  <button onclick="setMode('from')">Qayerdan</button>
-  <button onclick="setMode('to')">Qayerga</button>
-  <button onclick="callTaxi()">Taxi chaqirish</button>
+    <button onclick="setMode('from')">Qayerdan</button>
+    <button onclick="setMode('to')">Qayerga</button>
+    <button onclick="callTaxi()">Taxi chaqirish</button>
 
-  <div id="price"></div>
+    <div id="price"></div>
 </div>
 
 <div id="map"></div>
@@ -29,7 +33,7 @@ const socket = io();
 let map = L.map('map').setView([41.31, 69.27], 12);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  maxZoom: 19
+    maxZoom: 19
 }).addTo(map);
 
 let mode = null;
@@ -40,80 +44,67 @@ let fromMarker = null;
 let toMarker = null;
 
 function setMode(type){
-  mode = type;
+    mode = type;
 
-  if(type === 'from'){
-    alert('Qayerdan nuqtani tanlang');
-  }
+    if(type === 'from'){
+        alert("Qayerdan nuqtani tanlang");
+    }
 
-  if(type === 'to'){
-    alert('Qayerga nuqtani tanlang');
-  }
+    if(type === 'to'){
+        alert("Qayerga nuqtani tanlang");
+    }
 }
 
 map.on('click', function(e){
+    const lat = e.latlng.lat;
+    const lng = e.latlng.lng;
 
-  if(mode === 'from'){
-    from = {
-      lat: e.latlng.lat,
-      lng: e.latlng.lng
-    };
+    if(mode === 'from'){
+        from = {lat, lng};
 
-    if(fromMarker){
-      map.removeLayer(fromMarker);
+        if(fromMarker){
+            map.removeLayer(fromMarker);
+        }
+
+        fromMarker = L.marker([lat, lng]).addTo(map);
     }
 
-    fromMarker = L.marker(e.latlng)
-      .addTo(map)
-      .bindPopup('A')
-      .openPopup();
-  }
+    if(mode === 'to'){
+        to = {lat, lng};
 
-  if(mode === 'to'){
-    to = {
-      lat: e.latlng.lat,
-      lng: e.latlng.lng
-    };
+        if(toMarker){
+            map.removeLayer(toMarker);
+        }
 
-    if(toMarker){
-      map.removeLayer(toMarker);
+        toMarker = L.marker([lat, lng]).addTo(map);
     }
-
-    toMarker = L.marker(e.latlng)
-      .addTo(map)
-      .bindPopup('B')
-      .openPopup();
-  }
 });
 
 function callTaxi(){
-  console.log(from);
-  console.log(to);
+    if(!from || !to){
+        alert("Avval nuqtalarni tanlang");
+        return;
+    }
 
-  if(!from || !to){
-    alert('Avval A va B nuqtalarni tanlang');
-    return;
-  }
+    socket.emit("newOrder", {
+        from: from,
+        to: to
+    });
 
-  socket.emit('newOrder', {
-    from: from,
-    to: to
-  });
-
-  alert('Taxi chaqirildi');
+    alert("Taxi chaqirildi");
 }
 
-socket.on('orderAccepted', (order)=>{
-  document.getElementById('price').innerHTML =
-    'Narx: ' + order.price + " so'm";
+socket.on("orderAccepted", (order)=>{
+    document.getElementById("price").innerHTML =
+        "Narx: " + order.price + " so'm";
 });
 
-socket.on('rideStarted', ()=>{
-  alert('Safar boshlandi');
+socket.on("rideStarted", ()=>{
+    alert("Safar boshlandi");
 });
 
-socket.on('rideFinished', ()=>{
-  alert('Safar tugadi');
+socket.on("rideFinished", ()=>{
+    alert("Safar tugadi");
 });
 </script>
 
